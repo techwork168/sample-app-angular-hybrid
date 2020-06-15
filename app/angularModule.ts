@@ -6,6 +6,8 @@ import { UIRouterUpgradeModule, NgHybridStateDeclaration } from '@uirouter/angul
 import { sampleAppModuleAngularJS } from './angularJSModule';
 
 import { PrefsModule } from './prefs/prefs.module';
+import {UIRouter} from "@uirouter/core";
+import {AngularBootstrapComponent} from "./angular-bootstrap.component";
 
 // Create a "future state" (a placeholder) for the Contacts
 // Angular module which will be lazy loaded by UI-Router
@@ -25,10 +27,10 @@ export function getContactsService($injector) {
 
 // The main NgModule for the Angular portion of the hybrid app
 @NgModule({
+  declarations: [AngularBootstrapComponent],
+  entryComponents: [AngularBootstrapComponent],
   imports: [
     BrowserModule,
-    // Provide angular upgrade capabilities
-    UpgradeModule,
     // Provides the @uirouter/angular directives and registers
     // the future state for the lazy loaded contacts module
     UIRouterUpgradeModule.forRoot({ states: [contactsFutureState] }),
@@ -42,9 +44,8 @@ export function getContactsService($injector) {
   ]
 })
 export class SampleAppModuleAngular {
-  constructor(private upgrade: UpgradeModule) { }
+  constructor(private router: UIRouter) { }
 
   ngDoBootstrap() {
-    this.upgrade.bootstrap(document.body, [sampleAppModuleAngularJS.name], { strictDi: true });
   }
 }

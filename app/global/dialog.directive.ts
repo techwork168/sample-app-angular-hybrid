@@ -1,4 +1,4 @@
-import { globalModule } from './global.module';
+ import { globalModule } from './global.module';
 
 dialogDirective.$inject = ['$timeout', '$q'];
 function dialogDirective($timeout, $q) {

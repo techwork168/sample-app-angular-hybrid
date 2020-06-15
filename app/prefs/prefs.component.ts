@@ -6,7 +6,7 @@ import { Component, Inject } from '@angular/core';
       <div>
           <button class="btn btn-primary" (click)="reset()"><i class="fa fa-recycle"></i> <span>Reset All Data</span></button>
       </div>
-
+      <div> This for sure is my preference </div>
       <div>
           <label for="restDelay">Simulated REST API delay (ms)</label>
           <input type="text" name="restDelay" [(ngModel)]="prefs.restDelay">

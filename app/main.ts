@@ -24,7 +24,7 @@
 // Google analytics
 import './util/ga';
 import 'zone.js';
-import { NgZone } from '@angular/core';
+import {NgZone, PlatformRef, StaticProvider} from '@angular/core';
 
 ////////////// HYBRID BOOTSTRAP ///////////////
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
@@ -34,25 +34,37 @@ import { visualizer } from '@uirouter/visualizer';
 
 import { SampleAppModuleAngular } from './angularModule';
 import { sampleAppModuleAngularJS } from "./angularJSModule";
+import {downgradeComponent, downgradeModule} from "@angular/upgrade/static";
 
-// Using AngularJS config block, call `deferIntercept()`.
-// This tells UI-Router to delay the initial URL sync (until all bootstrapping is complete)
-sampleAppModuleAngularJS.config([ '$urlServiceProvider', ($urlService: UrlService) => $urlService.deferIntercept() ]);
+import * as angular from 'angular';
+import {AngularBootstrapComponent} from "./angular-bootstrap.component";
+(window as any).angular = angular;
 
-// Manually bootstrap the Angular app
-platformBrowserDynamic().bootstrapModule(SampleAppModuleAngular).then(platformRef => {
-  // Initialize the Angular Module
-  // get() the UIRouter instance from DI to initialize the router
-  const urlService: UrlService = platformRef.injector.get(UIRouter).urlService;
+const bootstrapFn = (extraProviders: StaticProvider[]) => {
+  const platformRef: PlatformRef = platformBrowserDynamic(extraProviders);
+  return platformRef.bootstrapModule(SampleAppModuleAngular);
+}
 
-  // Instruct UIRouter to listen to URL changes
-  function startUIRouter() {
-    urlService.listen();
-    urlService.sync();
-  }
 
-  platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
+sampleAppModuleAngularJS.config(['$urlServiceProvider', ($urlService: UrlService) => $urlService.deferIntercept()]);
+sampleAppModuleAngularJS.directive('bootstrapAngular', downgradeComponent({component: AngularBootstrapComponent}) as angular.IDirectiveFactory)
+
+
+angular.bootstrap(document.body, [
+  sampleAppModuleAngularJS.name,
+  downgradeModule(bootstrapFn)
+]) ;
+
+const injector: angular.auto.IInjectorService = angular.element(document.body).injector();
+
+const urlService: UrlService = injector.get('$urlService');
+
+setTimeout(() => {
+  // setTimeout needed to allow angular routes to initialize after refresh
+  urlService.listen();
+  urlService.sync();
+  // Show ui-router-visualizer
+  sampleAppModuleAngularJS.run(['$uiRouter', ($uiRouter) => visualizer($uiRouter) ]);
+
 });
 
-// Show ui-router-visualizer
-sampleAppModuleAngularJS.run(['$uiRouter', ($uiRouter) => visualizer($uiRouter) ]);
